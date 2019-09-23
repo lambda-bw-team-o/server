@@ -85,6 +85,12 @@ class World:
             # Create a room in the given direction
             room = Room(room_count, "A Generic Room", "This is a generic room.", x, y)
             # Note that in Django, you'll need to save the room after you create it
+            if random.randint(0, 100) < 1:
+                print(f'{room_count}: NONE')
+                room = None
+                previous_room = None
+                room_count += 1
+                continue
 
             # Save the room in the World grid
             self.grid[y][x] = room
@@ -105,8 +111,9 @@ class World:
         # self.s_to = None
         # self.e_to = None
         # self.w_to = None
-            if room.n_to is None and room.s_to is None and room.e_to is None and room.w_to is None:
-                print(f'{room_count}: has no connections')
+            # if room.n_to is None and room.s_to is None and room.e_to is None and room.w_to is None:
+            #     print(f'{room_count}: has no connections')
+            
 
 
 
@@ -166,9 +173,9 @@ class World:
 
 
 w = World()
-num_rooms = 100
-width = 10
-height = 10
+num_rooms = 25
+width = 5
+height = 5
 w.generate_rooms(width, height, num_rooms)
 w.print_rooms()
 
