@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 # from pusher import Pusher
-from django.http import JsonResponse, HttpRequest
+from django.core import serializers
+from django.http import HttpResponse
+from django.http import JsonResponse
 from decouple import config
 from django.contrib.auth.models import User
 from .models import *
@@ -64,3 +66,9 @@ def move(request):
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+
+@csrf_exempt
+@api_view(["GET"])
+def rooms(request):
+    data = list(Room.objects.values())
+    return JsonResponse({"rooms": data})
