@@ -1,9 +1,3 @@
-# Sample Python code that can be used to generate rooms in
-# a zig-zag pattern.
-#
-# You can modify generate_rooms() to create your own
-# procedural generation algorithm and use print_rooms()
-# to see the world.
 import random
 
 
@@ -45,78 +39,7 @@ class World:
 
 
     def generate_rooms(self, size_x, size_y, num_rooms):
-        '''
-        Fill up the grid, bottom to top, in a zig-zag pattern
-        '''
-
-        # Initialize the grid
-        self.grid = [None] * size_y
-        self.width = size_x
-        self.height = size_y
-        for i in range( len(self.grid) ):
-            self.grid[i] = [None] * size_x
-
-        # Start from lower-left corner (0,0)
-        x = -1 # (this will become 0 on the first step)
-        y = 0
-        room_count = 0
-
-        # Start generating rooms to the east
-        direction = 1  # 1: east, -1: west
-
-
-        # While there are rooms to be created...
-        previous_room = None
-        while room_count < num_rooms:
-
-            # Calculate the direction of the room to be created
-            if direction > 0 and x < size_x - 1:
-                room_direction = "e"
-                x += 1
-            elif direction < 0 and x > 0:
-                room_direction = "w"
-                x -= 1
-            else:
-                # If we hit a wall, turn north and reverse direction
-                room_direction = "n"
-                y += 1
-                direction *= -1
-
-            # Create a room in the given direction
-            room = Room(room_count, "A Generic Room", "This is a generic room.", x, y)
-            # Note that in Django, you'll need to save the room after you create it
-            if random.randint(0, 100) <= 1:
-                print(f'{room_count}: NONE')
-                room = None
-                previous_room = None
-                room_count += 1
-                continue
-
-            # Save the room in the World grid
-            self.grid[y][x] = room
-
-            # Connect the new room to the previous room
-            if previous_room is not None:
-                if random.randint(0, 100) > 10:
-                    previous_room.connect_rooms(room, room_direction)
-            
-            if self.grid[y -1][x]:
-                if (self.grid[y - 1][x].e_to is None and x < size_x - 1) or previous_room is None:
-                    self.grid[y - 1][x].connect_rooms(room, 'n')
-                # if random.randint(0, 100) > 60:
-                #     self.grid[y - 1][x].connect_rooms(room, 'n')
-
-            # Update iteration variables
-            previous_room = room
-            room_count += 1
-        # self.n_to = None
-        # self.s_to = None
-        # self.e_to = None
-        # self.w_to = None
-            # if room.n_to is None and room.s_to is None and room.e_to is None and room.w_to is None:
-            #     print(f'{room_count}: has no connections')
-            
-
+        pass
 
 
     def print_rooms(self):
