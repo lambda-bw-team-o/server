@@ -1,4 +1,7 @@
 import random
+import sys
+sys.path.append('../data_structs')
+from queue_struct import Queue
 
 
 class Room:
@@ -39,7 +42,9 @@ class World:
 
 
     def generate_rooms(self, size_x, size_y, num_rooms):
-        pass
+        self.grid = Queue()
+        
+        
 
 
     def print_rooms(self):
@@ -102,7 +107,7 @@ num_rooms = 25
 width = 5
 height = 5
 w.generate_rooms(width, height, num_rooms)
-w.print_rooms()
+# w.print_rooms()
 
 
 print(f"\n\nWorld\n  height: {height}\n  width: {width},\n  num_rooms: {num_rooms}\n")
