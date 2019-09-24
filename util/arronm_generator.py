@@ -65,7 +65,7 @@ class World:
 
     def generate_rooms(self, size_x, size_y, num_rooms):
         self.grid = [None] * size_y
-        for i in range(self.grid):
+        for i in range(len(self.grid)):
             self.grid[i] = [None] * size_x
         self.width = size_x
         self.height = size_y
@@ -89,8 +89,9 @@ class World:
         # add our spawn to the queue 
         rooms.push(spawn)
 
+        # while there are rooms in our queue
         while len(rooms) > 0:
-            cur_room = rooms.pop(0)
+            cur_room = rooms.pop()
 
             # skip if current room is None
             if cur_room is None:
@@ -110,7 +111,8 @@ class World:
             chance = min((room_count / num_rooms) * 100, 60)
 
             # North
-        
+            if y < (height - 1):
+                self.calc_connection(x, y + 1, cur_room, 'n', chance)
 
 
     def print_rooms(self):
@@ -170,10 +172,10 @@ class World:
 
 w = World()
 num_rooms = 25
-width = 5
-height = 5
+width = 10
+height = 10
 w.generate_rooms(width, height, num_rooms)
-# w.print_rooms()
+w.print_rooms()
 
 
 print(f"\n\nWorld\n  height: {height}\n  width: {width},\n  num_rooms: {num_rooms}\n")
