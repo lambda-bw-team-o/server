@@ -85,7 +85,7 @@ class World:
             # Create a room in the given direction
             room = Room(room_count, "A Generic Room", "This is a generic room.", x, y)
             # Note that in Django, you'll need to save the room after you create it
-            if random.randint(0, 100) < 1:
+            if random.randint(0, 100) <= 1:
                 print(f'{room_count}: NONE')
                 room = None
                 previous_room = None
@@ -101,8 +101,10 @@ class World:
                     previous_room.connect_rooms(room, room_direction)
             
             if self.grid[y -1][x]:
-                if random.randint(0, 100) > 60:
+                if (self.grid[y - 1][x].e_to is None and x < size_x - 1) or previous_room is None:
                     self.grid[y - 1][x].connect_rooms(room, 'n')
+                # if random.randint(0, 100) > 60:
+                #     self.grid[y - 1][x].connect_rooms(room, 'n')
 
             # Update iteration variables
             previous_room = room
