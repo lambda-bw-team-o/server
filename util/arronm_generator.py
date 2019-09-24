@@ -112,7 +112,9 @@ class World:
 
             # North
             if y < (height - 1):
-                self.calc_connection(x, y + 1, cur_room, 'n', chance)
+                new_room = self.calc_connection(x, y + 1, cur_room, 'n', chance)
+                if new_room:
+                    rooms.push(new_room)
 
 
     def print_rooms(self):
