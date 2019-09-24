@@ -39,11 +39,77 @@ class World:
         self.grid = None
         self.width = 0
         self.height = 0
+        self.room_id = 0 # TODO: Update to UUID?
+
+    def create_room(self, x, y):
+        room = Room(self.room_id, "A Generic Room", "This is a generic room.", x, y)
+        self.room_id += 1
+        return room
+
+    def calc_connection(self, x, y, room, direction, chance=0):
+        reverse_dirs = {"n": "s", "e": "w", "s": "n", "w": "e"}
+        new_room = self.grid[y][x]
+
+        # check if there is already a room here
+        if new_room:
+            if getattr(new_room, f'{reverse_dirs[direction]}_to'):
+                room.connect_rooms(new_room, direction)
+            else:
+                setattr(room, f'{direction}_to', None)
+        elif random.randint(0, 99) >= chance:
+            new_room = self.create_room(x, y)
+            room.connect_rooms(new_room, direction)
+            return new_room
+        return None
 
 
     def generate_rooms(self, size_x, size_y, num_rooms):
-        self.grid = Queue()
-        
+        self.grid = [None] * size_y
+        for i in range(self.grid):
+            self.grid[i] = [None] * size_x
+        self.width = size_x
+        self.height = size_y
+
+        room_count = 0
+        num_rooms = num_rooms
+
+        # check that we have enough space
+        if (width * height) < (num_rooms * 2):
+            print(f'\nYou need more space, a minimum area of {num_rooms * 2} is required')
+
+        rooms = Queue()
+
+        # set our start coords to mid of area
+        x = width // 2
+        y = height // 2
+
+        # create our spawn room
+        spawn = self.create_room(x, y)
+
+        # add our spawn to the queue 
+        rooms.push(spawn)
+
+        while len(rooms) > 0:
+            cur_room = rooms.pop(0)
+
+            # skip if current room is None
+            if cur_room is None:
+                continue
+            
+            # set x, y to current room values
+            x = cur_room.x
+            y = cur_room.y
+
+            # add to grid if room doesn't exist, increment room_count
+            if self.grid[y][x] is None:
+                self.grid[y][x] = cur_room
+                room_count += 1
+            
+            # create connection chance
+            # weighted by desired room_count
+            chance = min((room_count / num_rooms) * 100, 60)
+
+            # North
         
 
 
