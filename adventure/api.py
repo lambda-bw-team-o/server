@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 # from pusher import Pusher
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from decouple import config
 from django.contrib.auth.models import User
 from .models import *
@@ -31,8 +31,7 @@ def move(request):
     player = request.user.player
     player_id = player.id
     player_uuid = player.uuid
-    data = json.loads(request.body)
-    direction = data['direction']
+    direction = request.data['direction']
     room = player.room()
     nextRoomID = None
     if direction == "n":
