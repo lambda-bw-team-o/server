@@ -5,14 +5,14 @@ class Queue:
   def __init__(self):
     self.storage = DoublyLinkedList()
 
-  def enqueue(self, value):
+  def push(self, value):
     # store to head
     return self.storage.add_to_head(value)
   
-  def dequeue(self):
+  def pop(self):
     # remove from tail
     return self.storage.remove_from_tail()
 
-  def len(self):
+  def __len__(self):
     # call len
-    return self.storage.__len__()
+    return len(self.storage)
