@@ -122,6 +122,11 @@ class World:
                 if new_room:
                     rooms.push(new_room)
 
+            # South
+            if y > 0:
+                new_room = self.calc_connection(x, y - 1, cur_room, 's', chance)
+                if new_room:
+                    rooms.push(new_room)
 
 
     def print_rooms(self):
