@@ -72,14 +72,13 @@ class World:
         self.room_id = 1
 
         room_count = 0
-        num_rooms = num_rooms
 
         # set our seed to a random hash
         if not seed:
             seed = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         random.seed(seed)
 
-        # check that we have enough space
+        # check that we have enough space for generator
         if (width * height) < (num_rooms * 2):
             print(f'\nYou need more space, a minimum area of {num_rooms * 2} is required')
 
@@ -117,7 +116,6 @@ class World:
             # create connection chance
             # weighted by desired room_count
             chance = min(((room_count / num_rooms) * 100) + 15, 60)
-            # additive = 5
 
             # North
             if y < (height - 1):
@@ -205,9 +203,9 @@ class World:
 
 if __name__ == "__main__":
     w = World()
-    num_rooms = 500
-    width = 45
-    height = 45
+    num_rooms = 100
+    width = 20
+    height = 20
     # seed = "Bdq41Yxzssvm0ALw"
     seed = None
     w.generate_rooms(width, height, num_rooms, seed)

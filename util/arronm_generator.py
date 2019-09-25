@@ -1,44 +1,10 @@
 import random, string
-import sys
-# sys.path.append('../data_structs')
+
 from data_structs.queue_struct import Queue
 from adventure.models import Room
 
-
-# class Room:
-#     def __init__(self, id, name, description, x, y):
-#         self.id = id
-#         self.name = name
-#         self.description = description
-#         self.n_to = None
-#         self.s_to = None
-#         self.e_to = None
-#         self.w_to = None
-#         self.x = x
-#         self.y = y
-
-
-#     def __repr__(self):
-#         if self.e_to is not None:
-#             return f"({self.x}, {self.y}) -> ({self.e_to.x}, {self.e_to.y})"
-#         return f"({self.x}, {self.y})"
-
-
-#     def connect_rooms(self, connecting_room, direction):
-#         '''
-#         Connect two rooms in the given n/s/e/w direction
-#         '''
-#         reverse_dirs = {"n": "s", "s": "n", "e": "w", "w": "e"}
-#         reverse_dir = reverse_dirs[direction]
-#         setattr(self, f"{direction}_to", connecting_room)
-#         setattr(connecting_room, f"{reverse_dir}_to", self)
-
-
-#     def get_room_in_direction(self, direction):
-#         '''
-#         Connect two rooms in the given n/s/e/w direction
-#         '''
-#         return getattr(self, f"{direction}_to")
+import util.name
+import util.desc
 
 
 class World:
@@ -46,14 +12,18 @@ class World:
         self.grid = None
         self.width = 0
         self.height = 0
-        self.room_id = 1 # TODO: Update to UUID?
+        self.room_id = 1
 
     def create_room(self, x, y):
-        # room = Room(self.room_id, "A Generic Room", "This is a generic room.", x, y)
-        room = Room(id=self.room_id, title="A Generic Room", description="This is a generic room.")
+        # generate a random title and description
+        gen_title = util.name.gen(4, 6)
+        gen_desc = util.desc.gen(gen_title)
+
+        # generate a new room with the django Room model
+        room = Room(self.room_id, title=gen_title, description=gen_desc)
+
+        # set our room coordinates
         room.setCoords(x, y)
-        room.id = self.room_id
-        print('AHH', self.room_id, room.id)
         self.room_id += 1
         return room
 
@@ -64,20 +34,16 @@ class World:
         # check if there is already a room here
         if new_room:
             if getattr(new_room, f'{reverse_dirs[direction]}_to'):
-                # room.connect_rooms(new_room, direction)
-                if room.id == 12:
-                    print(room)
                 room.connectRooms(new_room, direction)
                 new_room.connectRooms(room, reverse_dirs[direction])
             else:
                 setattr(room, f'{direction}_to', 0)
                 room.save()
         elif random.randint(0, 99) >= chance:
+            # create a new room
             new_room = self.create_room(x, y)
-            # room.connect_rooms(new_room, direction)
             room.connectRooms(new_room, direction)
             new_room.connectRooms(room, reverse_dirs[direction])
-            # print('DIRECTION:', getattr(room, f'{direction}_to'))
             return new_room
         return None
 
@@ -128,46 +94,50 @@ class World:
             # add to grid if room doesn't exist, increment room_count
             if self.grid[y][x] is None:
                 self.grid[y][x] = cur_room
-                # print('DIRECTION:', getattr(cur_room, f'{direction}_to'))
-                # print(f'{cur_room.id}: n-{cur_room.n_to}, e-{cur_room.e_to}, s-{cur_room.s_to}, w-{cur_room.w_to}')
-                # cur_room.save()
                 room_count += 1
             else:
                 continue
             
-            # create connection chance
-            # weighted by desired room_count
-            chance = min((room_count / num_rooms) * 100, 60)
+            # connection chance as calculated by a percentage of
+            # current rooms / num rooms
+            # chance is inverse, such that a 0 = 100% chance, 60 = 40% chance
+            chance = min(((room_count / num_rooms) * 100) + 15, 60)
 
             # TODO: Randomize direction we check first
             # TODO: If room has 1` connection already, decrease chance for second
 
             # North
             if y < (size_y - 1):
+                # there is room North, so calculate new room
                 new_room = self.calc_connection(x, y + 1, cur_room, 'n', chance)
                 if new_room:
                     rooms.push(new_room)
             
             # East
             if x < (size_x - 1):
+                # there is room East, so calculate new room
                 new_room = self.calc_connection(x + 1, y, cur_room, 'e', chance)
                 if new_room:
                     rooms.push(new_room)
 
             # South
             if y > 0:
+                # there is room South, so calculate new room
                 new_room = self.calc_connection(x, y - 1, cur_room, 's', chance)
                 if new_room:
                     rooms.push(new_room)
 
             # West
             if x > 0:
+                # there is room West, so calculate new room
                 new_room = self.calc_connection(x - 1, y, cur_room, 'w', chance)
                 if new_room:
                     rooms.push(new_room)
-            # print("ID", cur_room.id)
+
+            # save our generated room to the database
             cur_room.save()
         
+        # redo the algo if we have not hit our num_rooms
         if room_count < num_rooms:
             self.generate_rooms(size_x, size_y, num_rooms)
         else:

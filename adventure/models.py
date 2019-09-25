@@ -12,6 +12,8 @@ class Room(models.Model):
     s_to = models.IntegerField(default=0)
     e_to = models.IntegerField(default=0)
     w_to = models.IntegerField(default=0)
+    x = models.IntegerField(default=0)
+    y = models.IntegerField(default=0)
     
     def setCoords(self, x, y):
         self.x = x
@@ -19,11 +21,6 @@ class Room(models.Model):
     
     def connectRooms(self, destinationRoom, direction):
         destinationRoomID = destinationRoom.id
-        # try:
-        #     destinationRoom = Room.objects.get(id=destinationRoomID)
-        # except Room.DoesNotExist:
-        #     print("That room does not exist")
-        # else:
         if direction == "n":
             self.n_to = destinationRoomID
         elif direction == "s":
@@ -35,7 +32,6 @@ class Room(models.Model):
         else:
             print("Invalid direction")
             return
-        # self.save()
     def playerNames(self, currentPlayerID):
         return [p.user.username for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
     def playerUUIDs(self, currentPlayerID):
