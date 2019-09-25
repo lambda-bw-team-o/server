@@ -105,6 +105,8 @@ class World:
             if self.grid[y][x] is None:
                 self.grid[y][x] = cur_room
                 room_count += 1
+            else:
+                continue
             
             # create connection chance
             # weighted by desired room_count
