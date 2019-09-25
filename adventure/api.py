@@ -1,3 +1,4 @@
+from decouple import config
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from pusher import Pusher
@@ -71,4 +72,11 @@ def say(request):
 @api_view(["GET"])
 def rooms(request):
     data = list(Room.objects.values())
-    return JsonResponse({"rooms": data})
+    return JsonResponse({
+        "grid": {
+            "width": config("GRID_WIDTH", default=20, cast=int),
+            "height": config("GRID_HEIGHT", default=20, cast=int),
+            "num_rooms": len(Room.objects.all())
+        },
+        "rooms": data
+    })
