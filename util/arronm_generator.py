@@ -91,9 +91,6 @@ class World:
             # add to grid if room doesn't exist, increment room_count
             if self.grid[y][x] is None:
                 self.grid[y][x] = cur_room
-                # print('DIRECTION:', getattr(cur_room, f'{direction}_to'))
-                # print(f'{cur_room.id}: n-{cur_room.n_to}, e-{cur_room.e_to}, s-{cur_room.s_to}, w-{cur_room.w_to}')
-                # cur_room.save()
                 room_count += 1
             else:
                 continue
@@ -128,7 +125,6 @@ class World:
                 new_room = self.calc_connection(x - 1, y, cur_room, 'w', chance)
                 if new_room:
                     rooms.push(new_room)
-            # print("ID", cur_room.id)
             cur_room.save()
         
         if room_count < num_rooms:
