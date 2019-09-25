@@ -1,6 +1,7 @@
 import random
 
-def gen(length):
+def name_gen(s, e):
+  length = random.randint(s, e)
   letters = {
     "vowel": {
       "single": ['a', 'e', 'i', 'o', 'u'],
@@ -29,6 +30,8 @@ def gen(length):
 
   return name[:1].upper() + name[1:]
 
-for i in range(100):
-  length = random.randint(4, 6)
-  print(gen(length))
+if __name__ == "__main__":
+  # for i in range(100):
+  #   length = random.randint(4, 6)
+  #   print(name_gen(length))
+  pass
