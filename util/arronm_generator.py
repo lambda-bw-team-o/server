@@ -1,10 +1,7 @@
-# Sample Python code that can be used to generate rooms in
-# a zig-zag pattern.
-#
-# You can modify generate_rooms() to create your own
-# procedural generation algorithm and use print_rooms()
-# to see the world.
-import random
+import random, string
+import sys
+sys.path.append('../data_structs')
+from queue_struct import Queue
 
 
 class Room:
@@ -42,81 +39,112 @@ class World:
         self.grid = None
         self.width = 0
         self.height = 0
+        self.room_id = 0 # TODO: Update to UUID?
+
+    def create_room(self, x, y):
+        room = Room(self.room_id, "A Generic Room", "This is a generic room.", x, y)
+        self.room_id += 1
+        return room
+
+    def calc_connection(self, x, y, room, direction, chance=0):
+        reverse_dirs = {"n": "s", "e": "w", "s": "n", "w": "e"}
+        new_room = self.grid[y][x]
+
+        # check if there is already a room here
+        if new_room:
+            if getattr(new_room, f'{reverse_dirs[direction]}_to'):
+                room.connect_rooms(new_room, direction)
+            else:
+                setattr(room, f'{direction}_to', None)
+        elif random.randint(0, 99) >= chance:
+            new_room = self.create_room(x, y)
+            room.connect_rooms(new_room, direction)
+            return new_room
+        return None
 
 
-    def generate_rooms(self, size_x, size_y, num_rooms):
-        '''
-        Fill up the grid, bottom to top, in a zig-zag pattern
-        '''
-
-        # Initialize the grid
+    def generate_rooms(self, size_x, size_y, num_rooms, seed=None):
         self.grid = [None] * size_y
+        for i in range(len(self.grid)):
+            self.grid[i] = [None] * size_x
         self.width = size_x
         self.height = size_y
-        for i in range( len(self.grid) ):
-            self.grid[i] = [None] * size_x
 
-        # Start from lower-left corner (0,0)
-        x = -1 # (this will become 0 on the first step)
-        y = 0
         room_count = 0
+        num_rooms = num_rooms
 
-        # Start generating rooms to the east
-        direction = 1  # 1: east, -1: west
+        # set our seed to a random hash
+        if not seed:
+            seed = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+        random.seed(seed)
 
+        # check that we have enough space
+        if (width * height) < (num_rooms * 2):
+            print(f'\nYou need more space, a minimum area of {num_rooms * 2} is required')
 
-        # While there are rooms to be created...
-        previous_room = None
-        while room_count < num_rooms:
+        rooms = Queue()
 
-            # Calculate the direction of the room to be created
-            if direction > 0 and x < size_x - 1:
-                room_direction = "e"
-                x += 1
-            elif direction < 0 and x > 0:
-                room_direction = "w"
-                x -= 1
-            else:
-                # If we hit a wall, turn north and reverse direction
-                room_direction = "n"
-                y += 1
-                direction *= -1
+        # set our start coords to mid of area
+        x = width // 2
+        y = height // 2
 
-            # Create a room in the given direction
-            room = Room(room_count, "A Generic Room", "This is a generic room.", x, y)
-            # Note that in Django, you'll need to save the room after you create it
-            if random.randint(0, 100) <= 1:
-                print(f'{room_count}: NONE')
-                room = None
-                previous_room = None
-                room_count += 1
+        # create our spawn room
+        spawn = self.create_room(x, y)
+
+        # add our spawn to the queue 
+        rooms.push(spawn)
+
+        # while there are rooms in our queue
+        while len(rooms) > 0:
+            cur_room = rooms.pop()
+
+            # skip if current room is None
+            if cur_room is None:
                 continue
-
-            # Save the room in the World grid
-            self.grid[y][x] = room
-
-            # Connect the new room to the previous room
-            if previous_room is not None:
-                if random.randint(0, 100) > 10:
-                    previous_room.connect_rooms(room, room_direction)
             
-            if self.grid[y -1][x]:
-                if (self.grid[y - 1][x].e_to is None and x < size_x - 1) or previous_room is None:
-                    self.grid[y - 1][x].connect_rooms(room, 'n')
-                # if random.randint(0, 100) > 60:
-                #     self.grid[y - 1][x].connect_rooms(room, 'n')
+            # set x, y to current room values
+            x = cur_room.x
+            y = cur_room.y
 
-            # Update iteration variables
-            previous_room = room
-            room_count += 1
-        # self.n_to = None
-        # self.s_to = None
-        # self.e_to = None
-        # self.w_to = None
-            # if room.n_to is None and room.s_to is None and room.e_to is None and room.w_to is None:
-            #     print(f'{room_count}: has no connections')
+            # add to grid if room doesn't exist, increment room_count
+            if self.grid[y][x] is None:
+                self.grid[y][x] = cur_room
+                room_count += 1
+            else:
+                continue
             
+            # create connection chance
+            # weighted by desired room_count
+            chance = min((room_count / num_rooms) * 100, 60)
 
+            # North
+            if y < (height - 1):
+                new_room = self.calc_connection(x, y + 1, cur_room, 'n', chance)
+                if new_room:
+                    rooms.push(new_room)
+            
+            # East
+            if x < (width - 1):
+                new_room = self.calc_connection(x + 1, y, cur_room, 'e', chance)
+                if new_room:
+                    rooms.push(new_room)
+
+            # South
+            if y > 0:
+                new_room = self.calc_connection(x, y - 1, cur_room, 's', chance)
+                if new_room:
+                    rooms.push(new_room)
+
+            # West
+            if x > 0:
+                new_room = self.calc_connection(x - 1, y, cur_room, 'w', chance)
+                if new_room:
+                    rooms.push(new_room)
+        
+        if room_count < num_rooms:
+            self.generate_rooms(size_x, size_y, num_rooms)
+        else:
+            print(f'\nGenerated {room_count} rooms: {seed}\n')
 
 
     def print_rooms(self):
@@ -175,10 +203,10 @@ class World:
 
 
 w = World()
-num_rooms = 25
-width = 5
-height = 5
-w.generate_rooms(width, height, num_rooms)
+num_rooms = 100
+width = 20
+height = 20
+w.generate_rooms(width, height, num_rooms, "6krEsMHo5orSitJR")
 w.print_rooms()
 
 
