@@ -1,44 +1,10 @@
 import random, string
-import sys
-# sys.path.append('../data_structs')
+
 from data_structs.queue_struct import Queue
 from adventure.models import Room
 
-
-# class Room:
-#     def __init__(self, id, name, description, x, y):
-#         self.id = id
-#         self.name = name
-#         self.description = description
-#         self.n_to = None
-#         self.s_to = None
-#         self.e_to = None
-#         self.w_to = None
-#         self.x = x
-#         self.y = y
-
-
-#     def __repr__(self):
-#         if self.e_to is not None:
-#             return f"({self.x}, {self.y}) -> ({self.e_to.x}, {self.e_to.y})"
-#         return f"({self.x}, {self.y})"
-
-
-#     def connect_rooms(self, connecting_room, direction):
-#         '''
-#         Connect two rooms in the given n/s/e/w direction
-#         '''
-#         reverse_dirs = {"n": "s", "s": "n", "e": "w", "w": "e"}
-#         reverse_dir = reverse_dirs[direction]
-#         setattr(self, f"{direction}_to", connecting_room)
-#         setattr(connecting_room, f"{reverse_dir}_to", self)
-
-
-#     def get_room_in_direction(self, direction):
-#         '''
-#         Connect two rooms in the given n/s/e/w direction
-#         '''
-#         return getattr(self, f"{direction}_to")
+import util.name
+import util.desc
 
 
 class World:
@@ -49,11 +15,11 @@ class World:
         self.room_id = 1 # TODO: Update to UUID?
 
     def create_room(self, x, y):
-        # room = Room(self.room_id, "A Generic Room", "This is a generic room.", x, y)
-        room = Room(id=self.room_id, title="A Generic Room", description="This is a generic room.")
+        gen_title = util.name.gen(4, 6)
+        gen_desc = util.desc.gen(gen_title)
+        room = Room(self.room_id, title=gen_title, description=gen_desc)
         room.setCoords(x, y)
-        room.id = self.room_id
-        print('AHH', self.room_id, room.id)
+        # room.id = self.room_id
         self.room_id += 1
         return room
 
@@ -64,9 +30,6 @@ class World:
         # check if there is already a room here
         if new_room:
             if getattr(new_room, f'{reverse_dirs[direction]}_to'):
-                # room.connect_rooms(new_room, direction)
-                if room.id == 12:
-                    print(room)
                 room.connectRooms(new_room, direction)
                 new_room.connectRooms(room, reverse_dirs[direction])
             else:

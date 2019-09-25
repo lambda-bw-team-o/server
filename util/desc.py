@@ -1,14 +1,5 @@
 import random
-from name_gen import name_gen
-# Room Type
-# Super Planet
-# Planet
-# Moon
-# Asteroid
-
-# Room Descriptor (Frozen, Icebound, Arid, etc)
-
-# Room Weather (Scalding Winds, Irradiated Storms, Occasional Clouds)
+import util.name
 
 bodies = ["super planet", "planet", "moon", "asteroid"]
 
@@ -211,8 +202,8 @@ attributes = {
   }
 }
 
-def desc_gen(planet):
-  
+def gen(planet):
+  vowels = ['a', 'e', 'i', 'o', 'u']
   body = random.choice(bodies)
 
   if body != 'asteroid':
@@ -225,12 +216,9 @@ def desc_gen(planet):
   weather = random.choice(attributes[category]['weather']).lower()
 
   return f'{planet} is {prefix} {cat_name} {body}, with {weather}'
-  
 
-
-vowels = ['a', 'e', 'i', 'o', 'u']
 
 if __name__ == "__main__":
   for i in range(100):
-    name = name_gen(4, 6)
-    print(desc_gen(name))
+    name = util.name.gen(4, 6)
+    print(gen(name))

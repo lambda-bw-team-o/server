@@ -1,6 +1,6 @@
 import random
 
-def name_gen(s, e):
+def gen(s, e):
   length = random.randint(s, e)
   letters = {
     "vowel": {
