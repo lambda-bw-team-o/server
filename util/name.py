@@ -16,14 +16,17 @@ def gen(s, e):
   choices = ('vowel', 'consonant')
   types = ('single', 'double')
 
-  # create starting
+  # create starting letter(s)
   letter_choice = random.choice(choices)
   letter_type = random.choice(types)
 
   name = random.choice(letters[letter_choice][letter_type])
 
   while len(name) < length:
+    # preven back-to-back vowels / consonants
     letter_choice = 'vowel' if letter_choice == 'consonant' else 'consonant'
+
+    # choose double or single consonant, 10% chance for double
     letter_type = 'single' if random.randint(0, 99) > 9 else 'double'
 
     name += random.choice(letters[letter_choice][letter_type])
@@ -31,7 +34,5 @@ def gen(s, e):
   return name[:1].upper() + name[1:]
 
 if __name__ == "__main__":
-  # for i in range(100):
-  #   length = random.randint(4, 6)
-  #   print(name_gen(length))
-  pass
+  for i in range(100):
+    print(gen(4, 6))

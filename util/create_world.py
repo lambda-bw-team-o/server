@@ -6,15 +6,16 @@ from util.arronm_generator import World
 Room.objects.all().delete()
 
 w = World()
-num_rooms = 50
+num_rooms = 100
 width = 20
 height = 20
-seed = "Bdq41Yxzssvm0ALw"
+seed = "ceDCxJTZ370qqSq5"
 # seed = None
 spawn = w.generate_rooms(width, height, num_rooms, seed)
 w.print_rooms()
 
-players=Player.objects.all()
+players = Player.objects.all()
+
 for p in players:
   p.currentRoom=spawn.id
   p.save()

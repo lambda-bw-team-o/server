@@ -12,14 +12,18 @@ class World:
         self.grid = None
         self.width = 0
         self.height = 0
-        self.room_id = 1 # TODO: Update to UUID?
+        self.room_id = 1
 
     def create_room(self, x, y):
+        # generate a random title and description
         gen_title = util.name.gen(4, 6)
         gen_desc = util.desc.gen(gen_title)
+
+        # generate a new room with the django Room model
         room = Room(self.room_id, title=gen_title, description=gen_desc)
+
+        # set our room coordinates
         room.setCoords(x, y)
-        # room.id = self.room_id
         self.room_id += 1
         return room
 
@@ -36,11 +40,10 @@ class World:
                 setattr(room, f'{direction}_to', 0)
                 room.save()
         elif random.randint(0, 99) >= chance:
+            # create a new room
             new_room = self.create_room(x, y)
-            # room.connect_rooms(new_room, direction)
             room.connectRooms(new_room, direction)
             new_room.connectRooms(room, reverse_dirs[direction])
-            # print('DIRECTION:', getattr(room, f'{direction}_to'))
             return new_room
         return None
 
@@ -95,38 +98,46 @@ class World:
             else:
                 continue
             
-            # create connection chance
-            # weighted by desired room_count
-            chance = min((room_count / num_rooms) * 100, 60)
+            # connection chance as calculated by a percentage of
+            # current rooms / num rooms
+            # chance is inverse, such that a 0 = 100% chance, 60 = 40% chance
+            chance = min(((room_count / num_rooms) * 100) + 15, 60)
 
             # TODO: Randomize direction we check first
             # TODO: If room has 1` connection already, decrease chance for second
 
             # North
             if y < (size_y - 1):
+                # there is room North, so calculate new room
                 new_room = self.calc_connection(x, y + 1, cur_room, 'n', chance)
                 if new_room:
                     rooms.push(new_room)
             
             # East
             if x < (size_x - 1):
+                # there is room East, so calculate new room
                 new_room = self.calc_connection(x + 1, y, cur_room, 'e', chance)
                 if new_room:
                     rooms.push(new_room)
 
             # South
             if y > 0:
+                # there is room South, so calculate new room
                 new_room = self.calc_connection(x, y - 1, cur_room, 's', chance)
                 if new_room:
                     rooms.push(new_room)
 
             # West
             if x > 0:
+                # there is room West, so calculate new room
                 new_room = self.calc_connection(x - 1, y, cur_room, 'w', chance)
                 if new_room:
                     rooms.push(new_room)
+
+            # save our generated room to the database
             cur_room.save()
         
+        # redo the algo if we have not hit our num_rooms
         if room_count < num_rooms:
             self.generate_rooms(size_x, size_y, num_rooms)
         else:
