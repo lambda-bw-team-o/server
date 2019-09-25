@@ -1,4 +1,4 @@
-import random
+import random, string
 import sys
 sys.path.append('../data_structs')
 from queue_struct import Queue
@@ -63,7 +63,7 @@ class World:
         return None
 
 
-    def generate_rooms(self, size_x, size_y, num_rooms):
+    def generate_rooms(self, size_x, size_y, num_rooms, seed=None):
         self.grid = [None] * size_y
         for i in range(len(self.grid)):
             self.grid[i] = [None] * size_x
@@ -72,6 +72,11 @@ class World:
 
         room_count = 0
         num_rooms = num_rooms
+
+        # set our seed to a random hash
+        if not seed:
+            seed = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+        random.seed(seed)
 
         # check that we have enough space
         if (width * height) < (num_rooms * 2):
@@ -135,6 +140,11 @@ class World:
                 new_room = self.calc_connection(x - 1, y, cur_room, 'w', chance)
                 if new_room:
                     rooms.push(new_room)
+        
+        if room_count < num_rooms:
+            self.generate_rooms(size_x, size_y, num_rooms)
+        else:
+            print(f'\nGenerated {room_count} rooms: {seed}\n')
 
 
     def print_rooms(self):
@@ -193,10 +203,10 @@ class World:
 
 
 w = World()
-num_rooms = 25
-width = 10
-height = 10
-w.generate_rooms(width, height, num_rooms)
+num_rooms = 100
+width = 20
+height = 20
+w.generate_rooms(width, height, num_rooms, "6krEsMHo5orSitJR")
 w.print_rooms()
 
 
