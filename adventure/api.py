@@ -11,6 +11,8 @@ from .models import *
 from rest_framework.decorators import api_view
 import json
 import random
+import datetime
+import pytz
 
 # instantiate pusher
 pusher = Pusher(app_id=config('PUSHER_APP_ID'), key=config('PUSHER_KEY'), secret=config('PUSHER_SECRET'), cluster=config('PUSHER_CLUSTER'))
@@ -88,14 +90,18 @@ def say(request):
         pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username}: {message}.'})
     return JsonResponse({'status': 'success', 'message': message}, safe=True)
 
-# import datetime
-# import pytz
+
 # pytz.utc.localize(datetime.datetime.utcnow())
 @csrf_exempt
 @api_view(["POST"])
 def attack(request):
     player = request.user.player
     enemy = Player.objects.get(id=request.data['enemy'])
+    combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
+
+    player.combat_timer = combat_timer
+    enemy.combat_timer = combat_timer
+
     # Check if enemy ship is already destroyed
     if enemy.health <= 0:
         return JsonResponse({'status': 'As you call to fire up your lasers, your scans come back indicating your target has previously been destroyed.'})
