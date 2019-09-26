@@ -36,9 +36,12 @@ def move(request):
     dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     reverse_dirs = {"n": "south", "s": "north", "e": "west", "w": "east"}
     player = request.user.player
+    now = pytz.utc.localize(datetime.datetime.utcnow())
 
-    # if player cloak timer < 30 minutes
-    # Unable to move while cloak is active
+    # check cloak timer to see if they can take action
+    if player.cloaked_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30):
+        # Unable to move while cloak is active
+        return JsonResponse({'status': f'Unable to move while cloaked and maintenance is ongoing. Try again later.'})
 
     if player.health <= 0:
         return JsonResponse({'status': "You are unable to move while your ship is destroyed. Try respawning."})
@@ -98,10 +101,17 @@ def attack(request):
     player = request.user.player
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
-
+    # check cloak timer to see if they can take action
+    if player.cloaked_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
+        return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
+    
     # check if enemy has cloaked
     if enemy.cloaked:
         return JsonResponse({'status': 'Their ship disappears right before your eyes, it\'s a miss!'})
+
+    # Check if room is a safe zone
+    if player.room().safe:
+        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
 
     # set combat timers
     player.combat_timer = combat_timer
@@ -111,16 +121,8 @@ def attack(request):
     if enemy.health <= 0:
         return JsonResponse({'status': 'As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.'})
 
-    # Check if room is a safe zone
-    if player.room().safe:
-        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
-
     hit_chance = 50
     hit_damage = 1
-
-    # Check cloak timer to see if they can take action
-    if player.cloaked_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
-        return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
 
     # Check if player is cloaked
     if player.cloaked:
