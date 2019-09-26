@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from pusher import Pusher
 from django.core import serializers
+from django.db.models import F
 from django.http import HttpResponse
 from django.http import JsonResponse
 from decouple import config
@@ -98,6 +99,7 @@ def say(request):
 @csrf_exempt
 @api_view(["POST"])
 def attack(request):
+    # TODO: Check that enemy is in the same room
     player = request.user.player
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
@@ -207,7 +209,11 @@ def respawn(request):
     return JsonResponse({'uuid': player.uuid, 'protected': room.safe, 'name': player.user.username, 'title': room.title, 'description': room.description, 'players': playerObjs}, safe=True)
 
 # ABC.objects.filter(B__isnull=False).values('A', 'B')
-# def scoreboard
+@csrf_exempt
+@api_view(["GET"])
+def scoreboard(request):
+    scores = list(Player.objects.annotate(name=F('user__username')).values('name', 'score').order_by('-score'))
+    return JsonResponse({"scores": scores})
 
 @csrf_exempt
 @api_view(["GET"])
