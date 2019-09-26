@@ -95,7 +95,6 @@ def say(request):
     return JsonResponse({'status': 'success', 'message': message}, safe=True)
 
 
-# pytz.utc.localize(datetime.datetime.utcnow())
 @csrf_exempt
 @api_view(["POST"])
 def attack(request):
@@ -103,9 +102,13 @@ def attack(request):
     player = request.user.player
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
+
     # check cloak timer to see if they can take action
     if player.cloak_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
         return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
+
+    if player.health <= 0:
+        return JsonResponse({'status': "Weapons systems are offline, your ship is destroyed. Try respawning."})
     
     # check if enemy has cloaked
     if enemy.cloaked:
@@ -208,7 +211,6 @@ def respawn(request):
     playerObjs = room.players(player.id)
     return JsonResponse({'uuid': player.uuid, 'protected': room.safe, 'name': player.user.username, 'title': room.title, 'description': room.description, 'players': playerObjs}, safe=True)
 
-# ABC.objects.filter(B__isnull=False).values('A', 'B')
 @csrf_exempt
 @api_view(["GET"])
 def scoreboard(request):
