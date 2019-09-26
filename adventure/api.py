@@ -75,7 +75,7 @@ def move(request):
             pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username} has entered from the {reverse_dirs[direction]}.'})
         return JsonResponse({'name':player.user.username, 'protected': nextRoom.safe, 'title':nextRoom.title, 'description':nextRoom.description, 'players': playerObjs, 'error_msg':""}, safe=True)
     else:
-        players = room.playerNames(player_id)
+        playerObjs = nextRoom.players(player_id)
         return JsonResponse({'name':player.user.username, 'protected': room.safe, 'title':room.title, 'description':room.description, 'players': playerObjs, 'error_msg':"You cannot move that way."}, safe=True)
 
 
