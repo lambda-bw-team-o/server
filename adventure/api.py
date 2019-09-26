@@ -89,8 +89,8 @@ def attack(request):
         return JsonResponse({'status': 'As you call to fire up your lasers, your scans come back indicating your target has previously been destroyed.'})
 
     # Check if room is a safe zone
-    if player.room().safe:
-        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
+    # if player.room().safe:
+    #     return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
 
     # Check cloak timer
     # Check if they're cloaked
@@ -101,12 +101,19 @@ def attack(request):
         enemy.health -= 1
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has hit your ship.'})
 
-        enemy.save()
         if enemy.health <= 0:
             # enemy.currentRoom = 1 # opting for manual respawn instead of auto
+            enemy.score  -= 1
+            if enemy.score < 0:
+                enemy.score = 0
+            enemy.save()
+            # Increase players score
+            player.score += 1
+            player.save()
             pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has destroyed your ship!'})
-            return JsonResponse({'status': 'You have destroyed the target vessel.'})
+            return JsonResponse({'score': player.score, 'status': 'You have destroyed the target vessel.'})
         else:
+            enemy.save()
             # respond hit
             return JsonResponse({'status': 'A direct hit!'})
     else:
