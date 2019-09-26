@@ -76,14 +76,17 @@ def move(request):
 @csrf_exempt
 @api_view(["POST"])
 def say(request):
-    # IMPLEMENT
     player = request.user.player
+    
+    if player.health <= 0:
+        return JsonResponse({'status': "Communication is down while your ship is destroyed. Try respawning."})
+    
     message = request.data['message']
     room = player.room()
     playerUUIDs = room.playerUUIDs(player.id)
     for p_uuid in playerUUIDs:
         pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username}: {message}.'})
-    return JsonResponse({'status': 'success'}, safe=True)
+    return JsonResponse({'status': 'success', 'message': message}, safe=True)
 
 # import datetime
 # import pytz
