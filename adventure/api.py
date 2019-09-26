@@ -38,6 +38,9 @@ def move(request):
     # if player cloak timer < 30 minutes
     # Unable to move while cloak is active
 
+    if player.health <= 0:
+        return JsonResponse({'status': "You are unable to move while your ship is destroyed. Try respawning."})
+
     player_id = player.id
     player_uuid = player.uuid
     direction = request.data['direction']
@@ -74,7 +77,13 @@ def move(request):
 @api_view(["POST"])
 def say(request):
     # IMPLEMENT
-    return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+    player = request.user.player
+    message = request.data['message']
+    room = player.room()
+    playerUUIDs = room.playerUUIDs(player.id)
+    for p_uuid in playerUUIDs:
+        pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username}: {message}.'})
+    return JsonResponse({'status': 'success'}, safe=True)
 
 # import datetime
 # import pytz
@@ -89,8 +98,8 @@ def attack(request):
         return JsonResponse({'status': 'As you call to fire up your lasers, your scans come back indicating your target has previously been destroyed.'})
 
     # Check if room is a safe zone
-    # if player.room().safe:
-    #     return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
+    if player.room().safe:
+        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
 
     # Check cloak timer
     # Check if they're cloaked
