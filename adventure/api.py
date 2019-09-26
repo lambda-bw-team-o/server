@@ -39,7 +39,7 @@ def move(request):
     now = pytz.utc.localize(datetime.datetime.utcnow())
 
     # check cloak timer to see if they can take action
-    if player.cloaked_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30):
+    if player.cloak_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30):
         # Unable to move while cloak is active
         return JsonResponse({'status': f'Unable to move while cloaked and maintenance is ongoing. Try again later.'})
 
@@ -102,7 +102,7 @@ def attack(request):
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
     # check cloak timer to see if they can take action
-    if player.cloaked_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
+    if player.cloak_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
         return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
     
     # check if enemy has cloaked
@@ -187,6 +187,7 @@ def cloak(request):
         for p_uuid in playerUUIDs:
             pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username} has uncloaked in the vicinity.'})
         player.save()
+        return JsonResponse({'status': f'Successfully uncloaked, all maintenance has been completed!'})
 
 @csrf_exempt
 @api_view(["POST"])
@@ -205,6 +206,8 @@ def respawn(request):
     playerObjs = room.players(player.id)
     return JsonResponse({'uuid': player.uuid, 'protected': room.safe, 'name': player.user.username, 'title': room.title, 'description': room.description, 'players': playerObjs}, safe=True)
 
+# ABC.objects.filter(B__isnull=False).values('A', 'B')
+# def scoreboard
 
 @csrf_exempt
 @api_view(["GET"])
