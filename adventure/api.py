@@ -111,7 +111,7 @@ def attack(request):
             return JsonResponse({'status': 'A direct hit!'})
     else:
         # respond miss
-        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has attacked your ship and missed!'})
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has fired on your ship and missed!'})
         return JsonResponse({'status': 'What a miss, you sure showed that space of space!'})
 
 # def cloak

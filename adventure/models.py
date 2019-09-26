@@ -49,6 +49,7 @@ class Player(models.Model):
     cloaked = models.BooleanField(default=False)
     cloak_timer = models.DateTimeField(null=True)
     combat_timer = models.DateTimeField(null=True)
+    score = models.IntegerField(default=0)
     def initialize(self):
         if self.currentRoom == 0:
             self.currentRoom = Room.objects.first().id
