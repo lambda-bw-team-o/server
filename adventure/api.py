@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from .models import *
 from rest_framework.decorators import api_view
 import json
+import random
 
 # instantiate pusher
 pusher = Pusher(app_id=config('PUSHER_APP_ID'), key=config('PUSHER_KEY'), secret=config('PUSHER_SECRET'), cluster=config('PUSHER_CLUSTER'))
@@ -80,11 +81,35 @@ def say(request):
 # pytz.utc.localize(datetime.datetime.utcnow())
 @csrf_exempt
 @api_view(["POST"])
-def attack(player_id):
+def attack(request):
+    player = request.user.player
+    enemy = Player.objects.get(id=request.data['enemy'])
     # Check if room is a safe zone
+
     # Check cloak timer
     # Check if they're cloaked
-    return JsonResponse({'status': 'Not yet implemented'})
+    # Roll attack
+    if random.randint(0, 99) >= 50:
+        # It's a hit!
+        enemy.health -= 1
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has hit your ship.'})
+
+        if enemy.health <= 0:
+            # enemy.currentRoom = 1
+            pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has destroyed your ship!'})
+
+        enemy.save()
+        # send pusher to enemy player
+        # respond hit
+        return JsonResponse({'status': 'A direct hit!'})
+    else:
+        # respond miss
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has attacked your ship and missed!'})
+        return JsonResponse({'status': 'What a miss, you sure showed that space of space!'})
+
+# def cloak
+
+# def respawn
 
 @csrf_exempt
 @api_view(["GET"])
