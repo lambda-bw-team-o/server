@@ -37,6 +37,8 @@ class Room(models.Model):
         return [p.user.username for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
     def playerUUIDs(self, currentPlayerID):
         return [p.uuid for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+    def players(self, currentPlayerID):
+        return [{'name': p.user.username, 'id': p.id} for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
 
 
 class Player(models.Model):
