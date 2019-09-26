@@ -240,6 +240,7 @@ def respawn(request):
     playerObjs = room.players(player.id)
     return JsonResponse({
         'uuid': player.uuid,
+        'position': [room.x, room.y],
         'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
         'name': player.user.username,
         'title': room.title,
