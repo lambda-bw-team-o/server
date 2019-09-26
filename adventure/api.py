@@ -99,6 +99,7 @@ def attack(request):
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
 
+    # set combat timers
     player.combat_timer = combat_timer
     enemy.combat_timer = combat_timer
 
@@ -139,7 +140,36 @@ def attack(request):
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has fired on your ship and missed!'})
         return JsonResponse({'status': 'What a miss, you sure showed that space of space!'})
 
-# def cloak
+@csrf_exempt
+@api_view(["POST"])
+def cloak(request):
+    player = request.user.player
+    now = pytz.utc.localize(datetime.datetime.utcnow())
+
+    if player.cloaked == False:
+        if player.health <=0:
+            return JsonResponse({'status': 'Your cloaking device is offline. Try respawning.'})
+
+        # check if recently (1 minutes) in combat
+        if (now - player.combat_timer) < datetime.timedelta(minutes=1):
+            return JsonResponse({'status': 'Power diverted to shields and maneuvering while in combat.'})
+
+        player.cloaked = True
+        player.cloak_timer = now
+        player.save()
+        return JsonResponse({'status': 'Cloaked successfully, maintenance will commence while cloaked. Minimum of 30 minutes required.'})
+    else:
+        # uncloak
+        if (now - player.cloak_timer) < datetime.timedelta(minutes=30):
+            return JsonResponse({'status': f'Unable to uncloak while maintenance is ongoing. Try again later.'})
+        
+        player.cloaked = False
+        room = player.room()
+        # Pusher ship uncloaked
+        playerUUIDs = room.playerUUIDs(player.id)
+        for p_uuid in playerUUIDs:
+            pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username} has uncloaked in the vicinity.'})
+        player.save()
 
 @csrf_exempt
 @api_view(["POST"])
