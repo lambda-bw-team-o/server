@@ -28,7 +28,15 @@ def initialize(request):
     uuid = player.uuid
     room = player.room()
     playerObjs = room.players(player_id)
-    return JsonResponse({'uuid': uuid, 'position': [room.x, room.y], 'protected': room.safe, 'name':player.user.username, 'title':room.title, 'description':room.description, 'players': playerObjs}, safe=True)
+    return JsonResponse({
+        'uuid': uuid,
+        'position': [room.x, room.y],
+        'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
+        'name':player.user.username,
+        'title':room.title,
+        'description':room.description,
+        'players': playerObjs
+    }, safe=True)
 
 
 # @csrf_exempt
@@ -73,10 +81,26 @@ def move(request):
             pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username} has walked {dirs[direction]}.'})
         for p_uuid in nextPlayerUUIDs:
             pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username} has entered from the {reverse_dirs[direction]}.'})
-        return JsonResponse({'name':player.user.username, 'position': [nextRoom.x, nextRoom.y], 'protected': nextRoom.safe, 'title':nextRoom.title, 'description':nextRoom.description, 'players': playerObjs, 'error_msg':""}, safe=True)
+        return JsonResponse({
+            'name':player.user.username,
+            'position': [nextRoom.x, nextRoom.y],
+            'combat': { 'protected': nextRoom.safe, 'health': player.health, 'cloaked': player.cloaked },
+            'title': nextRoom.title,
+            'description': nextRoom.description,
+            'players': playerObjs,
+            'error_msg':""
+        }, safe=True)
     else:
         playerObjs = room.players(player_id)
-        return JsonResponse({'name':player.user.username, 'position': [room.x, room.y], 'protected': room.safe, 'title':room.title, 'description':room.description, 'players': playerObjs, 'error_msg':"You cannot move that way."}, safe=True)
+        return JsonResponse({
+            'name':player.user.username,
+            'position': [room.x, room.y],
+            'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
+            'title':room.title,
+            'description':room.description,
+            'players': playerObjs,
+            'error_msg':"You cannot move that way."
+        }, safe=True)
 
 
 @csrf_exempt
@@ -214,7 +238,15 @@ def respawn(request):
     player.save()
     room = player.room()
     playerObjs = room.players(player.id)
-    return JsonResponse({'uuid': player.uuid, 'protected': room.safe, 'name': player.user.username, 'title': room.title, 'description': room.description, 'players': playerObjs}, safe=True)
+    return JsonResponse({
+        'uuid': player.uuid,
+        'position': [room.x, room.y],
+        'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
+        'name': player.user.username,
+        'title': room.title,
+        'description': room.description,
+        'players': playerObjs
+    }, safe=True)
 
 @csrf_exempt
 @api_view(["GET"])
