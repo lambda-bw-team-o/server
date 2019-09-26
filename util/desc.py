@@ -118,7 +118,7 @@ attributes = {
       "Unstable Fog",
       "Volatile Windstorms",
       "Irradiated Downpours",
-      "Ocassional Radiation Outbursts",
+      "Occasional Radiation Outbursts",
       "Enormous Nuclear Storms",
       "Extreme Radioactivity",
       "Gamma Cyclones",
