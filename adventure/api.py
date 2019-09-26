@@ -123,7 +123,23 @@ def attack(request):
 
 # def cloak
 
-# def respawn
+@csrf_exempt
+@api_view(["POST"])
+def respawn(request):
+    player = request.user.player
+
+    # check if health is zero
+    if player.health != 0:
+        return JsonResponse({'status': 'You frantically run around hitting every big red button you see, alas there is no self destruct to be found.'})
+    
+    # Send player back to respawn
+    player.currentRoom = 1
+    player.health = 5
+    player.save()
+    room = player.room()
+    playerObjs = room.players(player.id)
+    return JsonResponse({'uuid': player.uuid, 'protected': room.safe, 'name': player.user.username, 'title': room.title, 'description': room.description, 'players': playerObjs}, safe=True)
+
 
 @csrf_exempt
 @api_view(["GET"])
