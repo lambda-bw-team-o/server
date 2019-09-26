@@ -94,6 +94,8 @@ class World:
             # add to grid if room doesn't exist, increment room_count
             if self.grid[y][x] is None:
                 self.grid[y][x] = cur_room
+                if room_count < 10:
+                    room.safe = True
                 room_count += 1
             else:
                 continue
