@@ -95,7 +95,7 @@ class World:
             if self.grid[y][x] is None:
                 self.grid[y][x] = cur_room
                 if room_count < 10:
-                    room.safe = True
+                    cur_room.safe = True
                 room_count += 1
             else:
                 continue
