@@ -27,7 +27,7 @@ def initialize(request):
     uuid = player.uuid
     room = player.room()
     # players = room.playerNames(player_id)
-    playerObjs = room.players(player_id)
+    playerObjs = room.players(player_id)  # TODO: Don't show cloaked players
     return JsonResponse({'uuid': uuid, 'protected': room.safe, 'name':player.user.username, 'title':room.title, 'description':room.description, 'players': playerObjs}, safe=True)
 
 
@@ -140,6 +140,7 @@ def attack(request):
     if random.randint(0, 99) <= hit_chance:
         # It's a hit!
         enemy.health -= hit_damage
+        # TODO: Send new health
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has hit your ship.'})
 
         if enemy.health <= 0:
@@ -162,8 +163,8 @@ def attack(request):
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has fired on your ship and missed!'})
         return JsonResponse({'status': 'What a miss, you sure showed that space of space!'})
 
-@csrf_exempt
 @api_view(["POST"])
+@csrf_exempt
 def cloak(request):
     player = request.user.player
     now = pytz.utc.localize(datetime.datetime.utcnow())
