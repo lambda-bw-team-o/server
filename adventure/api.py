@@ -32,6 +32,10 @@ def move(request):
     dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     reverse_dirs = {"n": "south", "s": "north", "e": "west", "w": "east"}
     player = request.user.player
+
+    # if player cloak timer < 30 minutes
+    # Unable to move while cloak is active
+
     player_id = player.id
     player_uuid = player.uuid
     direction = request.data['direction']
@@ -67,6 +71,14 @@ def move(request):
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+
+# import datetime
+# import pytz
+# pytz.utc.localize(datetime.datetime.utcnow())
+@csrf_exempt
+@api_view(["POST"])
+def attack(player_uuid):
+    return JsonResponse({'status': 'Not yet implemented'})
 
 @csrf_exempt
 @api_view(["GET"])
