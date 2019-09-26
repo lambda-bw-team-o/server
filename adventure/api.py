@@ -27,8 +27,7 @@ def initialize(request):
     player_id = player.id
     uuid = player.uuid
     room = player.room()
-    # players = room.playerNames(player_id)
-    playerObjs = room.players(player_id)  # TODO: Don't show cloaked players
+    playerObjs = room.players(player_id)
     return JsonResponse({'uuid': uuid, 'protected': room.safe, 'name':player.user.username, 'title':room.title, 'description':room.description, 'players': playerObjs}, safe=True)
 
 
@@ -103,6 +102,10 @@ def attack(request):
     player = request.user.player
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
+
+    # check that enemy is in the same room
+    if player.room() != enemy.room():
+        return JsonResponse({'status': f'Target vessel does not appear to be within attack range.'})
 
     # check cloak timer to see if they can take action
     if player.cloak_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
