@@ -101,14 +101,14 @@ def attack(request):
         enemy.health -= 1
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has hit your ship.'})
 
-        if enemy.health <= 0:
-            # enemy.currentRoom = 1
-            pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has destroyed your ship!'})
-
         enemy.save()
-        # send pusher to enemy player
-        # respond hit
-        return JsonResponse({'status': 'A direct hit!'})
+        if enemy.health <= 0:
+            # enemy.currentRoom = 1 # opting for manual respawn instead of auto
+            pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has destroyed your ship!'})
+            return JsonResponse({'status': 'You have destroyed the target vessel.'})
+        else:
+            # respond hit
+            return JsonResponse({'status': 'A direct hit!'})
     else:
         # respond miss
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has attacked your ship and missed!'})
