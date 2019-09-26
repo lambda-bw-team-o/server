@@ -26,8 +26,7 @@ def initialize(request):
     player_id = player.id
     uuid = player.uuid
     room = player.room()
-    # players = room.playerNames(player_id)
-    playerObjs = room.players(player_id)  # TODO: Don't show cloaked players
+    playerObjs = room.players(player_id)
     return JsonResponse({'uuid': uuid, 'protected': room.safe, 'name':player.user.username, 'title':room.title, 'description':room.description, 'players': playerObjs}, safe=True)
 
 

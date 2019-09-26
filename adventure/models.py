@@ -38,7 +38,7 @@ class Room(models.Model):
     def playerUUIDs(self, currentPlayerID):
         return [p.uuid for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
     def players(self, currentPlayerID):
-        return [{'name': p.user.username, 'id': p.id} for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+        return [{'name': p.user.username, 'id': p.id} for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID) and not p.cloaked]
 
 
 class Player(models.Model):
