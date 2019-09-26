@@ -99,25 +99,40 @@ def attack(request):
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
 
+    # check if enemy has cloaked
+    if enemy.cloaked:
+        return JsonResponse({'status': 'Their ship disappears right before your eyes, it\'s a miss!'})
+
     # set combat timers
     player.combat_timer = combat_timer
     enemy.combat_timer = combat_timer
 
     # Check if enemy ship is already destroyed
     if enemy.health <= 0:
-        return JsonResponse({'status': 'As you call to fire up your lasers, your scans come back indicating your target has previously been destroyed.'})
+        return JsonResponse({'status': 'As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.'})
 
     # Check if room is a safe zone
     if player.room().safe:
         return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
 
-    # Check cloak timer
-    # Check if they're cloaked
+    hit_chance = 50
+    hit_damage = 1
+
+    # Check cloak timer to see if they can take action
+    if player.cloaked_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
+        return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
+
+    # Check if player is cloaked
+    if player.cloaked:
+        hit_chance += 20
+        hit_damage += 1
+        player.cloak = False
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has decloaked and attacked your ship!'})
 
     # Roll attack
-    if random.randint(0, 99) >= 50:
+    if random.randint(0, 99) <= hit_chance:
         # It's a hit!
-        enemy.health -= 1
+        enemy.health -= hit_damage
         pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has hit your ship.'})
 
         if enemy.health <= 0:
@@ -151,7 +166,7 @@ def cloak(request):
             return JsonResponse({'status': 'Your cloaking device is offline. Try respawning.'})
 
         # check if recently (1 minutes) in combat
-        if (now - player.combat_timer) < datetime.timedelta(minutes=1):
+        if player.combat_timer and (now - player.combat_timer) < datetime.timedelta(minutes=1):
             return JsonResponse({'status': 'Power diverted to shields and maneuvering while in combat.'})
 
         player.cloaked = True
