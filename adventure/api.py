@@ -84,10 +84,17 @@ def say(request):
 def attack(request):
     player = request.user.player
     enemy = Player.objects.get(id=request.data['enemy'])
+    # Check if enemy ship is already destroyed
+    if enemy.health <= 0:
+        return JsonResponse({'status': 'As you call to fire up your lasers, your scans come back indicating your target has previously been destroyed.'})
+
     # Check if room is a safe zone
+    if player.room().safe:
+        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
 
     # Check cloak timer
     # Check if they're cloaked
+
     # Roll attack
     if random.randint(0, 99) >= 50:
         # It's a hit!
