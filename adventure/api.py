@@ -102,6 +102,10 @@ def attack(request):
     enemy = Player.objects.get(id=request.data['enemy'])
     combat_timer = pytz.utc.localize(datetime.datetime.utcnow())
 
+    # check that enemy is in the same room
+    if player.room() != enemy.room():
+        return JsonResponse({'status': f'Target vessel does not appear to be within attack range.'})
+
     # check cloak timer to see if they can take action
     if player.cloak_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
         return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
