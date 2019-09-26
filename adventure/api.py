@@ -134,7 +134,7 @@ def attack(request):
         hit_chance += 20
         hit_damage += 1
         player.cloak = False
-        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has decloaked and attacked your ship!'})
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has decloaked and is attacking your ship!'})
 
     # Roll attack
     if random.randint(0, 99) <= hit_chance:
