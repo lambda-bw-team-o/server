@@ -31,7 +31,7 @@ def initialize(request):
     return JsonResponse({
         'uuid': uuid,
         'position': [room.x, room.y],
-        'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
+        'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked, 'score': player.score },
         'name':player.user.username,
         'title':room.title,
         'description':room.description,
@@ -95,7 +95,7 @@ def move(request):
         return JsonResponse({
             'name':player.user.username,
             'position': [room.x, room.y],
-            'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
+            'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked, 'score': player.score },
             'title':room.title,
             'description':room.description,
             'players': playerObjs,
@@ -242,7 +242,7 @@ def respawn(request):
     return JsonResponse({
         'uuid': player.uuid,
         'position': [room.x, room.y],
-        'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked },
+        'combat': { 'protected': room.safe, 'health': player.health, 'cloaked': player.cloaked, 'score': player.score },
         'name': player.user.username,
         'title': room.title,
         'description': room.description,
