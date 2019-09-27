@@ -50,11 +50,11 @@ def move(request):
     # check cloak timer to see if they can take action
     if (player.cloak_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30)) or player.cloaked:
         # Unable to move while cloak is active
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>Unable to move while cloaked and maintenance is ongoing. Try again later.</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'Unable to move while cloaked and maintenance is ongoing. Try again later.'})
         return JsonResponse({'status': f'Unable to move while cloaked and maintenance is ongoing. Try again later.'}, status=400)
 
     if player.health <= 0:
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>You are unable to move while your ship is destroyed. Try respawning.</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'You are unable to move while your ship is destroyed. Try respawning.'})
         return JsonResponse({'status': "You are unable to move while your ship is destroyed. Try respawning."}, status=400)
 
     player_id = player.id
@@ -111,6 +111,7 @@ def say(request):
     player = request.user.player
     
     if player.health <= 0:
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message':f'Communication is down while your ship is destroyed. Try respawning.'})
         return JsonResponse({'status': "Communication is down while your ship is destroyed. Try respawning."}, status=400)
     
     message = request.data['message']
@@ -132,21 +133,26 @@ def attack(request):
 
     # check that enemy is in the same room
     if player.room() != enemy.room():
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message':f'Target vessel does not appear to be within attack range.'})
         return JsonResponse({'status': f'Target vessel does not appear to be within attack range.'}, status=400)
 
     # check cloak timer to see if they can take action
     if player.cloak_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message':f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
         return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'}, status=400)
 
     if player.health <= 0:
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message':f'Weapons systems are offline, your ship is destroyed. Try respawning.'})
         return JsonResponse({'status': "Weapons systems are offline, your ship is destroyed. Try respawning."}, status=400)
     
     # check if enemy has cloaked
     if enemy.cloaked:
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message':f'Their ship disappears right before your eyes, it\'s a miss!'})
         return JsonResponse({'status': 'Their ship disappears right before your eyes, it\'s a miss!'})
 
     # Check if room is a safe zone
     if player.room().safe:
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message':f'As you begin your fire sequence, a patrol ship flies by. You scramble to cancel the command.'})
         return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'}, status=400)
 
     # set combat timers
@@ -155,7 +161,7 @@ def attack(request):
 
     # Check if enemy ship is already destroyed
     if enemy.health <= 0:
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.'})
         return JsonResponse({'status': 'As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.'}, status=400)
 
     hit_chance = 50
@@ -185,17 +191,17 @@ def attack(request):
             player.score += 1
             player.save()
             pusher.trigger(f'p-channel-{enemy.uuid}', u'combat', {'message': f'{player.user.username} has destroyed your ship!'})
-            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>You have destroyed the target vessel.</i>'})
+            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'You have destroyed the target vessel.'})
             return JsonResponse({'score': player.score, 'status': 'You have destroyed the target vessel.'})
         else:
             enemy.save()
             # respond hit
-            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>A direct hit!</i>'})
+            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'A direct hit!'})
             return JsonResponse({'status': 'A direct hit!'})
     else:
         # respond miss
         pusher.trigger(f'p-channel-{enemy.uuid}', u'combat', {'message': f'{player.user.username} has fired on your ship and missed!'})
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>What a miss, you sure showed that space of space!</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'What a miss, you sure showed that space of space!'})
         return JsonResponse({'status': 'What a miss, you sure showed that space of space!'})
 
 @api_view(["POST"])
@@ -206,23 +212,23 @@ def cloak(request):
 
     if player.cloaked == False:
         if player.health <=0:
-            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>Your cloaking device is offline. Try respawning.</i>'})
+            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'Your cloaking device is offline. Try respawning.'})
             return JsonResponse({'status': 'Your cloaking device is offline. Try respawning.'}, status=400)
 
         # check if recently (1 minutes) in combat
         if player.combat_timer and (now - player.combat_timer) < datetime.timedelta(minutes=1):
-            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>Power diverted to shields and maneuvering while in combat.</i>'})
+            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'Power diverted to shields and maneuvering while in combat.'})
             return JsonResponse({'status': 'Power diverted to shields and maneuvering while in combat.'}, status=400)
 
         player.cloaked = True
         player.cloak_timer = now
         player.save()
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>Cloaked successfully, maintenance will commence while cloaked. Minimum of 30 minutes required.</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'Cloaked successfully, maintenance will commence while cloaked. Minimum of 30 minutes required.'})
         return JsonResponse({'status': 'Cloaked successfully, maintenance will commence while cloaked. Minimum of 30 minutes required.'})
     else:
         # uncloak
         if (now - player.cloak_timer) < datetime.timedelta(minutes=30):
-            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>Unable to uncloak while maintenance is ongoing. Try again later.</i>'})
+            pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'Unable to uncloak while maintenance is ongoing. Try again later.'})
             return JsonResponse({'status': f'Unable to uncloak while maintenance is ongoing. Try again later.'}, status=400)
         
         player.cloaked = False
@@ -232,7 +238,7 @@ def cloak(request):
         for p_uuid in playerUUIDs:
             pusher.trigger(f'p-channel-{p_uuid}', u'broadcast', {'message':f'{player.user.username} has uncloaked in the vicinity.'})
         player.save()
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>Successfully uncloaked, all maintenance has been completed!</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'Successfully uncloaked, all maintenance has been completed!'})
         return JsonResponse({'status': f'Successfully uncloaked, all maintenance has been completed!'})
 
 @csrf_exempt
@@ -242,7 +248,7 @@ def respawn(request):
 
     # check if health is zero
     if player.health != 0:
-        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': '<i>You frantically run around hitting every big red button you see, alas there is no self destruct to be found.</i>'})
+        pusher.trigger(f'p-channel-{player.uuid}', u'broadcast', {'message': 'You frantically run around hitting every big red button you see, alas there is no self destruct to be found.'})
         return JsonResponse({'status': 'You frantically run around hitting every big red button you see, alas there is no self destruct to be found.'}, status=400)
     
     # Send player back to respawn
