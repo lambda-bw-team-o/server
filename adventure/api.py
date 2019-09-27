@@ -48,7 +48,7 @@ def move(request):
     now = pytz.utc.localize(datetime.datetime.utcnow())
 
     # check cloak timer to see if they can take action
-    if player.cloak_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30):
+    if (player.cloak_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30)) or player.cloaked:
         # Unable to move while cloak is active
         return JsonResponse({'status': f'Unable to move while cloaked and maintenance is ongoing. Try again later.'})
 
