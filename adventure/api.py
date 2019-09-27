@@ -162,14 +162,14 @@ def attack(request):
         hit_chance += 20
         hit_damage += 1
         player.cloak = False
-        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has decloaked and is attacking your ship!'})
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'combat', {'message': f'{player.user.username} has decloaked and is attacking your ship!'})
 
     # Roll attack
     if random.randint(0, 99) <= hit_chance:
         # It's a hit!
         enemy.health -= hit_damage
         # TODO: Send new health
-        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has hit your ship.'})
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'combat', {'message': f'{player.user.username} has hit your ship.'})
 
         if enemy.health <= 0:
             # enemy.currentRoom = 1 # opting for manual respawn instead of auto
@@ -180,7 +180,7 @@ def attack(request):
             # Increase players score
             player.score += 1
             player.save()
-            pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has destroyed your ship!'})
+            pusher.trigger(f'p-channel-{enemy.uuid}', u'combat', {'message': f'{player.user.username} has destroyed your ship!'})
             return JsonResponse({'score': player.score, 'status': 'You have destroyed the target vessel.'})
         else:
             enemy.save()
@@ -188,7 +188,7 @@ def attack(request):
             return JsonResponse({'status': 'A direct hit!'})
     else:
         # respond miss
-        pusher.trigger(f'p-channel-{enemy.uuid}', u'broadcast', {'combat': f'{player.user.username} has fired on your ship and missed!'})
+        pusher.trigger(f'p-channel-{enemy.uuid}', u'combat', {'message': f'{player.user.username} has fired on your ship and missed!'})
         return JsonResponse({'status': 'What a miss, you sure showed that space of space!'})
 
 @api_view(["POST"])
