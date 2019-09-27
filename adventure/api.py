@@ -50,10 +50,10 @@ def move(request):
     # check cloak timer to see if they can take action
     if (player.cloak_timer and (now - player.cloak_timer) < datetime.timedelta(minutes=30)) or player.cloaked:
         # Unable to move while cloak is active
-        return JsonResponse({'status': f'Unable to move while cloaked and maintenance is ongoing. Try again later.'})
+        return JsonResponse({'status': f'Unable to move while cloaked and maintenance is ongoing. Try again later.'}, status=400)
 
     if player.health <= 0:
-        return JsonResponse({'status': "You are unable to move while your ship is destroyed. Try respawning."})
+        return JsonResponse({'status': "You are unable to move while your ship is destroyed. Try respawning."}, status=400)
 
     player_id = player.id
     player_uuid = player.uuid
@@ -109,7 +109,7 @@ def say(request):
     player = request.user.player
     
     if player.health <= 0:
-        return JsonResponse({'status': "Communication is down while your ship is destroyed. Try respawning."})
+        return JsonResponse({'status': "Communication is down while your ship is destroyed. Try respawning."}, status=400)
     
     message = request.data['message']
     room = player.room()
@@ -129,14 +129,14 @@ def attack(request):
 
     # check that enemy is in the same room
     if player.room() != enemy.room():
-        return JsonResponse({'status': f'Target vessel does not appear to be within attack range.'})
+        return JsonResponse({'status': f'Target vessel does not appear to be within attack range.'}, status=400)
 
     # check cloak timer to see if they can take action
     if player.cloak_timer and (combat_timer - player.cloak_timer) < datetime.timedelta(minutes=30):
-        return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'})
+        return JsonResponse({'status': f'Unable to attack while cloaked and maintenance is ongoing. Try again later.'}, status=400)
 
     if player.health <= 0:
-        return JsonResponse({'status': "Weapons systems are offline, your ship is destroyed. Try respawning."})
+        return JsonResponse({'status': "Weapons systems are offline, your ship is destroyed. Try respawning."}, status=400)
     
     # check if enemy has cloaked
     if enemy.cloaked:
@@ -144,7 +144,7 @@ def attack(request):
 
     # Check if room is a safe zone
     if player.room().safe:
-        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'})
+        return JsonResponse({'status': 'As you begin your fire sequence a patrol ship flies nearby. You scramble to cancel the command.'}, status=400)
 
     # set combat timers
     player.combat_timer = combat_timer
@@ -152,7 +152,7 @@ def attack(request):
 
     # Check if enemy ship is already destroyed
     if enemy.health <= 0:
-        return JsonResponse({'status': 'As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.'})
+        return JsonResponse({'status': 'As you call to fire up your lasers, scans come back indicating your target has previously been destroyed.'}, status=400)
 
     hit_chance = 50
     hit_damage = 1
@@ -199,11 +199,11 @@ def cloak(request):
 
     if player.cloaked == False:
         if player.health <=0:
-            return JsonResponse({'status': 'Your cloaking device is offline. Try respawning.'})
+            return JsonResponse({'status': 'Your cloaking device is offline. Try respawning.'}, status=400)
 
         # check if recently (1 minutes) in combat
         if player.combat_timer and (now - player.combat_timer) < datetime.timedelta(minutes=1):
-            return JsonResponse({'status': 'Power diverted to shields and maneuvering while in combat.'})
+            return JsonResponse({'status': 'Power diverted to shields and maneuvering while in combat.'}, status=400)
 
         player.cloaked = True
         player.cloak_timer = now
@@ -212,7 +212,7 @@ def cloak(request):
     else:
         # uncloak
         if (now - player.cloak_timer) < datetime.timedelta(minutes=30):
-            return JsonResponse({'status': f'Unable to uncloak while maintenance is ongoing. Try again later.'})
+            return JsonResponse({'status': f'Unable to uncloak while maintenance is ongoing. Try again later.'}, status=400)
         
         player.cloaked = False
         room = player.room()
@@ -230,7 +230,7 @@ def respawn(request):
 
     # check if health is zero
     if player.health != 0:
-        return JsonResponse({'status': 'You frantically run around hitting every big red button you see, alas there is no self destruct to be found.'})
+        return JsonResponse({'status': 'You frantically run around hitting every big red button you see, alas there is no self destruct to be found.'}, status=400)
     
     # Send player back to respawn
     player.currentRoom = 1
