@@ -1,3 +1,8 @@
+# Data Structures
+
+We implemented a Queue for the room generation algorithm. This was chose instead of an array for efficiency. Every time we pop an item off an array for our algorithm, the array would have an O(n) for index re-assignment, whereas the Queue is instead O(1). Additionally as we're building our array, it may need to continually find a new contiguous place in memory as it grows.
+
+
 # CS Build Week 1
 
 For your first CS Build Week, you will be building an interactive ***Multi-User Dungeon (MUD)*** client and server in groups. To succeed with this project, you will be applying knowledge you've learned throughout the first part of CS to this project.
