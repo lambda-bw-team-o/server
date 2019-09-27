@@ -39,6 +39,7 @@ class World:
             else:
                 setattr(room, f'{direction}_to', 0)
             room.save()
+            new_room.save()
         elif random.randint(0, 99) >= chance:
             # create a new room
             new_room = self.create_room(x, y)
